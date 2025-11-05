@@ -6,23 +6,6 @@ An MCP Server that bridges AI agents with the Deutsche Bahn Timetable API, enabl
 
 ---
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [What is Model Context Protocol (MCP)?](#what-is-model-context-protocol-mcp)
-- [Architecture](#architecture)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [MCP Tools & Functions](#mcp-tools--functions)
-- [Contributing](#contributing)
-- [License](#license)
-- [Resources](#resources)
-
----
-
 ## 🎯 Overview
 
 The **DB-TimetableAPI-MCPServer** is an open-source implementation of a Model Context Protocol (MCP) server that integrates with the [Deutsche Bahn Timetable API](https://developers.deutschebahn.com/db-api-marketplace/apis/product/timetables). This project serves as middleware that fetches, processes, and serves German railway timetable data to downstream AI agents and client applications.
