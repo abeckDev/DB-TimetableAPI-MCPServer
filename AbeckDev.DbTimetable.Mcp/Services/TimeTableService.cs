@@ -29,13 +29,7 @@ public class TimeTableService
         request.Headers.Add("accept", "application/xml");
         
         var response = await _httpClient.SendAsync(request, cancellationToken);
-        
-        if (!response.IsSuccessStatusCode)
-        {
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException(
-                $"Deutsche Bahn API request failed with status {response.StatusCode}: {errorContent}");
-        }
+        response.EnsureSuccessStatusCode();
         
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         return content;
