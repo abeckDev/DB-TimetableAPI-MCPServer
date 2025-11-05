@@ -31,7 +31,7 @@ builder.Services.AddHttpClient<TimeTableService>(client =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddMcpServer(options =>
     {
-        options.ServerInfo = new Implementation { Name = "Deutsche Bahn - Timetable API", Version = "" };
+        options.ServerInfo = new Implementation { Name = "Deutsche Bahn - Timetable API", Version = "1.0.0" };
     })
     .WithHttpTransport()
     .WithToolsFromAssembly()
