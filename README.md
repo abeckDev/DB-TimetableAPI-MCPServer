@@ -2,6 +2,7 @@
 
 [![.NET CI with Code Coverage](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml/badge.svg)](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer/graph/badge.svg?token=RJR3H1JRPW)](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer)
 
 > **Model Context Protocol (MCP) Server for Deutsche Bahn Timetable API Integration**
 
