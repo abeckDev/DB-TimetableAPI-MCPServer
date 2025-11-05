@@ -113,10 +113,10 @@ The DB-TimetableAPI-MCPServer is planning to provide the following capabilities:
 
 ### Core Functionality
 
-- 🔜 **Planned Timetable Access**: Retrieve scheduled arrivals and departures for any DB station
-- 🔜 **Real-Time Updates**: Access live delay information, cancellations, and platform changes
-- 🔜 **Station Search**: Find stations and retrieve detailed facility information
-- 🔜 **Standardized MCP Interface**: Expose Deutsche Bahn data through MCP protocol
+- ✅ **Planned Timetable Access**: Retrieve scheduled arrivals and departures for any DB station
+- ✅ **Real-Time Updates**: Access live delay information, cancellations, and platform changes
+- ✅ **Station Search**: Find stations and retrieve detailed facility information
+- ✅ **Standardized MCP Interface**: Expose Deutsche Bahn data through MCP protocol
 
 ### Data Capabilities
 
