@@ -270,7 +270,7 @@ public class TimetableToolsTests
         var result = await tools.GetStationDetails(pattern);
 
         // Assert
-        Assert.Contains("Error fetching station Details:", result);
+        Assert.Contains("Error fetching station details:", result);
         Assert.Contains(exceptionMessage, result);
     }
 

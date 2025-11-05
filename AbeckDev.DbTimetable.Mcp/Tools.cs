@@ -106,7 +106,7 @@ public static class Tools
             }
             catch (HttpRequestException ex)
             {
-                return $"Error fetching station Details: {ex.Message}";
+                return $"Error fetching station details: {ex.Message}";
             }
             catch (Exception ex)
             {
