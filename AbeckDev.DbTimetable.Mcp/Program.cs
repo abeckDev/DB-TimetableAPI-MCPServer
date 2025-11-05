@@ -15,6 +15,7 @@ builder.Services.AddMcpServer(options =>
 
 
 var app = builder.Build();
+
 app.MapMcp("/mcp");
 
-app.Run("http://localhost:3001");
+app.Run("http://0.0.0.0:3001");

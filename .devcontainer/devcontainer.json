@@ -5,22 +5,37 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm",
 	"features": {
-		"ghcr.io/devcontainers/features/azure-cli:1": {}
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		}
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5000, 5001],
-	// "portsAttributes": {
-	//		"5001": {
-	//			"protocol": "https"
-	//		}
-	// }
+	"forwardPorts": [6274, 6277, 3001],
+	"portsAttributes": {
+		"6274": {
+			"protocol": "http",
+			"label": "MCP-Inspector",
+			"onAutoForward": "notify"
+		},
+		"6277": {
+			"protocol": "http",
+			"label": "MCP-Inspector-Proxy",
+			"onAutoForward": "notify"
+		},
+		"3001":{
+			"label": "MCP-Server",
+			"onAutoForward": "notify",
+			"protocol": "http"
+		}
+	},
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	//"postCreateCommand": "",
+	"postCreateCommand": "npm install -g @modelcontextprotocol/inspector",
 
 	// Configure tool-specific properties.
 	"customizations": {

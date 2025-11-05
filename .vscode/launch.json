@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug MCP Server with Inspector (HTTP)",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npx",
+            "runtimeArgs": [
+                "@modelcontextprotocol/inspector",
+                "--transport",
+                "http",
+                "--server-url",
+                "http://localhost:3001/mcp"
+            ],
+            "env": {
+                "HOST": "0.0.0.0"
+            },
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "preLaunchTask": "build-and-run-server",
+            "serverReadyAction": {
+                "pattern": "MCP Inspector is up and running at:\\s+(http://[^\\s]+)",
+                "uriFormat": "%s",
+                "action": "openExternally"
+            }
+        }
+    ]
+}
