@@ -1,0 +1,6 @@
+@AbeckDev.DbTimetable.Mcp_HostAddress = http://localhost:5252
+
+GET {{AbeckDev.DbTimetable.Mcp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
