@@ -15,9 +15,9 @@ public static class Tools
     [McpServerToolType]
     public class TimetableTools
     {
-        private readonly TimeTableService _timeTableService;
+        private readonly ITimeTableService _timeTableService;
 
-        public TimetableTools(TimeTableService timeTableService)
+        public TimetableTools(ITimeTableService timeTableService)
         {
             _timeTableService = timeTableService;
         }

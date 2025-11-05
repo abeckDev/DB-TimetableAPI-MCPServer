@@ -19,7 +19,7 @@ var dbConfig = builder.Configuration
     .GetSection(Configuration.SectionName)
     .Get<Configuration>() ?? new Configuration();
 
-builder.Services.AddHttpClient<TimeTableService>(client =>
+builder.Services.AddHttpClient<ITimeTableService, TimeTableService>(client =>
 {
     client.BaseAddress = new Uri(dbConfig.BaseUrl);
     client.DefaultRequestHeaders.Accept.Add(

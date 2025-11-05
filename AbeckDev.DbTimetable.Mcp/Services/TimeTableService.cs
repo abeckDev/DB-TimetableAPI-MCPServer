@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace AbeckDev.DbTimetable.Mcp.Services;
 
-public class TimeTableService
+public class TimeTableService : ITimeTableService
 {
 
     private readonly HttpClient _httpClient;
