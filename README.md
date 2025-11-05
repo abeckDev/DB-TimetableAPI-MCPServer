@@ -269,7 +269,7 @@ Images are tagged with multiple identifiers for flexibility:
 Example pulling a specific version:
 
 ```bash
-docker pull ghcr.io/abeckdev/db-timetableapi-mcpserver:main-abc1234
+docker pull ghcr.io/abeckdev/db-timetableapi-mcpserver:main-a1b2c3d
 ```
 
 ---
