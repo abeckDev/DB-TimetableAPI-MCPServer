@@ -15,9 +15,9 @@ public static class Tools
     [McpServerToolType]
     public class TimetableTools
     {
-        private readonly TimeTableService _timeTableService;
+        private readonly ITimeTableService _timeTableService;
 
-        public TimetableTools(TimeTableService timeTableService)
+        public TimetableTools(ITimeTableService timeTableService)
         {
             _timeTableService = timeTableService;
         }
@@ -106,7 +106,7 @@ public static class Tools
             }
             catch (HttpRequestException ex)
             {
-                return $"Error fetching station Details: {ex.Message}";
+                return $"Error fetching station details: {ex.Message}";
             }
             catch (Exception ex)
             {

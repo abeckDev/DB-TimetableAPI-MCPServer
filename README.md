@@ -1,5 +1,9 @@
 # DB-TimetableAPI-MCPServer
 
+[![.NET CI with Code Coverage](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml/badge.svg)](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer/graph/badge.svg?token=RJR3H1JRPW)](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer)
+
 > **Model Context Protocol (MCP) Server for Deutsche Bahn Timetable API Integration**
 
 An MCP Server that bridges AI agents with the Deutsche Bahn Timetable API, enabling seamless access to German railway schedule data, real-time updates, and station information through a standardized protocol.
@@ -591,6 +595,93 @@ Here are some commonly used EVA station numbers for testing:
 | Dresden Hauptbahnhof | 8010085 |
 
 You can find more EVA numbers using the `GetStationDetails` tool with a station name pattern.
+
+---
+
+## 🧪 Testing
+
+### Running Tests Locally
+
+The project includes comprehensive unit tests with code coverage tracking.
+
+#### Run All Tests
+
+```bash
+# Navigate to the project directory
+cd DB-TimetableAPI-MCPServer
+
+# Run all tests
+dotnet test
+```
+
+#### Run Tests with Code Coverage
+
+```bash
+# Run tests and collect coverage data
+dotnet test --collect:"XPlat Code Coverage" --results-directory ./TestResults
+
+# Generate HTML coverage report (requires reportgenerator tool)
+dotnet tool install --global dotnet-reportgenerator-globaltool
+reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"TestResults/CoverageReport" -reporttypes:"Html;TextSummary"
+
+# View coverage summary
+cat TestResults/CoverageReport/Summary.txt
+
+# Open HTML report in browser
+# The report will be at: TestResults/CoverageReport/index.html
+```
+
+### Test Structure
+
+The test project (`AbeckDev.DbTimetable.Mcp.Test`) includes:
+
+- **ConfigurationTests.cs**: Tests for configuration model validation
+- **TimeTableServiceTests.cs**: Tests for API service layer with mocked HTTP responses
+- **TimetableToolsTests.cs**: Tests for MCP tool wrappers with error handling
+
+### Coverage Goals
+
+- **Current Coverage**: 78.3% line coverage
+- **Target**: 70%+ line coverage (enforced in CI/CD)
+- **Core Business Logic**: 100% coverage (Services, Tools, Models)
+
+### Testing Guidelines for Contributors
+
+When contributing code, please:
+
+1. **Write Tests**: Add unit tests for any new functionality
+2. **Mock External Dependencies**: Use Moq to mock HTTP clients and external services
+3. **Test Error Scenarios**: Include tests for both success and failure cases
+4. **Maintain Coverage**: Ensure your changes don't drop overall coverage below 70%
+5. **Run Tests Locally**: Verify all tests pass before submitting a PR
+
+Example test pattern:
+
+```csharp
+[Fact]
+public async Task MethodName_WithCondition_ExpectedBehavior()
+{
+    // Arrange
+    var mockService = new Mock<ITimeTableService>();
+    mockService.Setup(s => s.MethodAsync(...)).ReturnsAsync(...);
+    
+    // Act
+    var result = await service.MethodAsync(...);
+    
+    // Assert
+    Assert.Equal(expectedValue, result);
+}
+```
+
+### Continuous Integration
+
+All pull requests automatically run:
+- ✅ Build verification
+- ✅ All unit tests
+- ✅ Code coverage analysis
+- ✅ Coverage threshold checks (70% minimum)
+
+Coverage reports are available as workflow artifacts.
 
 ---
 

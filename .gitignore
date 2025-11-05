@@ -55,6 +55,9 @@ Generated\ Files/
 [Bb]uild[Ll]og.*
 *.trx
 
+# Code Coverage Results
+TestResults/
+
 # NUnit
 *.VisualState.xml
 TestResult.xml

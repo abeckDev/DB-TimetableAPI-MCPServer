@@ -1,0 +1,363 @@
+using System.Net;
+using AbeckDev.DbTimetable.Mcp.Models;
+using AbeckDev.DbTimetable.Mcp.Services;
+using Microsoft.Extensions.Options;
+using Moq;
+using Moq.Protected;
+
+namespace AbeckDev.DbTimetable.Mcp.Test;
+
+public class TimeTableServiceTests
+{
+    private readonly Mock<IOptions<Configuration>> _mockOptions;
+    private readonly Configuration _config;
+    private readonly string _testXmlResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><timetable><station><name>Test Station</name></station></timetable>";
+
+    public TimeTableServiceTests()
+    {
+        _config = new Configuration
+        {
+            BaseUrl = "https://test.api.com/",
+            ClientId = "test-client-id",
+            ApiKey = "test-api-key"
+        };
+        _mockOptions = new Mock<IOptions<Configuration>>();
+        _mockOptions.Setup(o => o.Value).Returns(_config);
+    }
+
+    private HttpClient CreateMockHttpClient(HttpStatusCode statusCode, string content)
+    {
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = statusCode,
+                Content = new StringContent(content)
+            });
+
+        return new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+    }
+
+    private void VerifyHttpRequest(Mock<HttpMessageHandler> mockHandler, string expectedPath, string expectedClientId, string expectedApiKey)
+    {
+        mockHandler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.RequestUri!.PathAndQuery.Contains(expectedPath) &&
+                req.Headers.Contains("DB-Client-Id") &&
+                req.Headers.GetValues("DB-Client-Id").First() == expectedClientId &&
+                req.Headers.Contains("DB-Api-Key") &&
+                req.Headers.GetValues("DB-Api-Key").First() == expectedApiKey &&
+                req.Headers.Accept.Any(h => h.MediaType == "application/xml")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetRecentTimetableChangesAsync_WithValidEventNo_ReturnsXmlContent()
+    {
+        // Arrange
+        var httpClient = CreateMockHttpClient(HttpStatusCode.OK, _testXmlResponse);
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var eventNo = "12345";
+
+        // Act
+        var result = await service.GetRecentTimetableChangesAsync(eventNo);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+    }
+
+    [Fact]
+    public async Task GetRecentTimetableChangesAsync_WithHttpError_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Content = new StringContent("Not Found")
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var eventNo = "99999";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => 
+            service.GetRecentTimetableChangesAsync(eventNo));
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithoutDate_UsesCurrentDate()
+    {
+        // Arrange
+        var httpClient = CreateMockHttpClient(HttpStatusCode.OK, _testXmlResponse);
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act
+        var result = await service.GetStationBoardAsync(evaNo);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithDate_UsesProvidedDate()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_testXmlResponse)
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+        var testDate = new DateTime(2025, 11, 5, 18, 30, 0);
+
+        // Act
+        var result = await service.GetStationBoardAsync(evaNo, testDate);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+        
+        // Verify the request path contains the formatted date
+        mockHandler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.RequestUri!.PathAndQuery.Contains("plan/8000105/251105/18")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithHttpError_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                Content = new StringContent("Server Error")
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => 
+            service.GetStationBoardAsync(evaNo));
+    }
+
+    [Fact]
+    public async Task GetFullChangesAsync_WithValidEvaNo_ReturnsXmlContent()
+    {
+        // Arrange
+        var httpClient = CreateMockHttpClient(HttpStatusCode.OK, _testXmlResponse);
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act
+        var result = await service.GetFullChangesAsync(evaNo);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+    }
+
+    [Fact]
+    public async Task GetFullChangesAsync_WithHttpError_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Unauthorized,
+                Content = new StringContent("Unauthorized")
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => 
+            service.GetFullChangesAsync(evaNo));
+    }
+
+    [Fact]
+    public async Task GetStationInformation_WithValidPattern_ReturnsXmlContent()
+    {
+        // Arrange
+        var httpClient = CreateMockHttpClient(HttpStatusCode.OK, _testXmlResponse);
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var pattern = "Frankfurt";
+
+        // Act
+        var result = await service.GetStationInformation(pattern);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+    }
+
+    [Fact]
+    public async Task GetStationInformation_WithHttpError_ThrowsHttpRequestException()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = new StringContent("Bad Request")
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var pattern = "InvalidPattern";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => 
+            service.GetStationInformation(pattern));
+    }
+
+    [Fact]
+    public async Task GetRecentTimetableChangesAsync_SetsCorrectHeaders()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_testXmlResponse)
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var eventNo = "12345";
+
+        // Act
+        await service.GetRecentTimetableChangesAsync(eventNo);
+
+        // Assert
+        VerifyHttpRequest(mockHandler, $"rchg/{eventNo}", _config.ClientId, _config.ApiKey);
+    }
+
+    [Fact]
+    public async Task GetFullChangesAsync_SetsCorrectHeaders()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_testXmlResponse)
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act
+        await service.GetFullChangesAsync(evaNo);
+
+        // Assert
+        VerifyHttpRequest(mockHandler, $"fchg/{evaNo}", _config.ClientId, _config.ApiKey);
+    }
+
+    [Fact]
+    public async Task GetStationInformation_SetsCorrectHeaders()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_testXmlResponse)
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var pattern = "Frankfurt";
+
+        // Act
+        await service.GetStationInformation(pattern);
+
+        // Assert
+        VerifyHttpRequest(mockHandler, $"station/{pattern}", _config.ClientId, _config.ApiKey);
+    }
+}

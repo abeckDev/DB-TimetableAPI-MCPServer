@@ -1,0 +1,73 @@
+name: .NET CI with Code Coverage
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Test
+      run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./TestResults
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        directory: ./TestResults
+        fail_ci_if_error: false
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      
+    - name: Generate Coverage Report
+      uses: danielpalme/ReportGenerator-GitHub-Action@5.4.2
+      with:
+        reports: 'TestResults/**/coverage.cobertura.xml'
+        targetdir: 'TestResults/CoverageReport'
+        reporttypes: 'Html;TextSummary;Cobertura;Badges'
+        
+    - name: Display Coverage Summary
+      run: |
+        echo "## Code Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat TestResults/CoverageReport/Summary.txt >> $GITHUB_STEP_SUMMARY
+        
+    - name: Upload Coverage Report as Artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: TestResults/CoverageReport
+        retention-days: 30
+        
+    - name: Check Coverage Threshold
+      run: |
+        COVERAGE=$(grep -oP 'Line coverage: \K[0-9.]+' TestResults/CoverageReport/Summary.txt)
+        echo "Current coverage: $COVERAGE%"
+        THRESHOLD=70.0
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "❌ Coverage ($COVERAGE%) is below threshold ($THRESHOLD%)"
+          exit 1
+        else
+          echo "✅ Coverage ($COVERAGE%) meets threshold ($THRESHOLD%)"
+        fi
