@@ -88,9 +88,9 @@ flowchart LR
     DB -->|"API Auth"| MCP
     MCP -->|"Timetable Data"| Tools
     Tools -->|"Expose MCP Tools"| TA
-    TA --> Mobile
-    TA --> Web
-    TA --> Phone
+    Mobile --> TA
+    Web --> TA
+    Phone --> TA
     
     style Server fill:#e1f5ff,stroke:#0288d1,stroke-width:3px
     style API fill:#f5f5f5,stroke:#666,stroke-width:2px
@@ -100,23 +100,23 @@ flowchart LR
 
 ### Component Flow
 
-1. **DB Timetable API** (Left)
+1. **DB Timetable API**
    - Deutsche Bahn's official timetable API
    - Requires API authentication
    - Provides schedule and real-time train data
 
-2. **Timetable MCP Server** (Center) - **This Repository**
+2. **Timetable MCP Server** - **This Repository**
    - Authenticates with DB API
    - Fetches and processes timetable data
    - Exposes standardized MCP tools for agents
    - Implements the Model Context Protocol specification
 
-3. **Timetable Agent** (Right - Not in Scope)
+3. **Timetable Agent** (Not in Scope)
    - Consumes MCP tools from this server
    - Orchestrates requests and responses
    - Interfaces with client applications
 
-4. **Client Applications** (Far Right - Not in Scope)
+4. **Client Applications** (Not in Scope)
    - Mobile apps, websites, voice assistants, etc.
    - End-user interfaces for timetable information
 
@@ -126,15 +126,14 @@ flowchart LR
 
 ## ✨ Features
 
-The DB-TimetableAPI-MCPServer provides the following capabilities:
+The DB-TimetableAPI-MCPServer is planning to provide the following capabilities:
 
 ### Core Functionality
 
-- ✅ **Planned Timetable Access**: Retrieve scheduled arrivals and departures for any DB station
-- ✅ **Real-Time Updates**: Access live delay information, cancellations, and platform changes
-- ✅ **Station Search**: Find stations and retrieve detailed facility information
-- ✅ **Train Tracking**: Follow trains across stations and routes
-- ✅ **Standardized MCP Interface**: Expose Deutsche Bahn data through MCP protocol
+- 🔜 **Planned Timetable Access**: Retrieve scheduled arrivals and departures for any DB station
+- 🔜 **Real-Time Updates**: Access live delay information, cancellations, and platform changes
+- 🔜 **Station Search**: Find stations and retrieve detailed facility information
+- 🔜 **Standardized MCP Interface**: Expose Deutsche Bahn data through MCP protocol
 
 ### Data Capabilities
 
@@ -153,10 +152,7 @@ Before setting up the MCP server, ensure you have the following:
 
 ### System Requirements
 
-- **Operating System**: Windows, macOS, or Linux
-- **Runtime**: Node.js 16+ or Python 3.8+ (depending on implementation)
-- **Memory**: Minimum 512MB RAM
-- **Network**: Stable internet connection for API access
+WIP
 
 ### DB API Access
 
@@ -174,31 +170,7 @@ You must obtain API credentials from Deutsche Bahn:
 
 ## 🚀 Installation
 
-### Step 1: Clone the Repository
-
-```bash
-git clone https://github.com/abeckDev/DB-TimetableAPI-MCPServer.git
-cd DB-TimetableAPI-MCPServer
-```
-
-### Step 2: Install Dependencies
-
-**For Node.js implementation:**
-```bash
-npm install
-```
-
-**For Python implementation:**
-```bash
-pip install -r requirements.txt
-```
-
-### Step 3: Verify Installation
-
-```bash
-# Check that all dependencies are installed
-npm list  # or: pip list
-```
+Work in progress. 
 
 ---
 
@@ -206,30 +178,8 @@ npm list  # or: pip list
 
 ### Environment Variables
 
-Create a `.env` file in the project root with the following configuration:
-
-```env
-# Deutsche Bahn API Configuration
-DB_API_KEY=your_api_key_here
-DB_API_BASE_URL=https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1
-
-# MCP Server Configuration
-MCP_SERVER_PORT=3000
-MCP_SERVER_HOST=localhost
-
-# Logging
-LOG_LEVEL=info
-```
 
 ### Configuration Options
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `DB_API_KEY` | Your Deutsche Bahn API key | Yes | - |
-| `DB_API_BASE_URL` | DB API endpoint URL | No | Official DB API URL |
-| `MCP_SERVER_PORT` | Port for MCP server | No | 3000 |
-| `MCP_SERVER_HOST` | Host address | No | localhost |
-| `LOG_LEVEL` | Logging verbosity (debug, info, warn, error) | No | info |
 
 ### API Rate Limits
 
@@ -245,151 +195,27 @@ Configure appropriate caching and request throttling in your deployment.
 
 ### Starting the MCP Server
 
-**Development Mode:**
-```bash
-npm run dev  # or: python main.py --dev
-```
-
-**Production Mode:**
-```bash
-npm start  # or: python main.py
-```
-
-The server will start and listen for MCP protocol connections on the configured port.
-
-### Testing the Server
-
-**Check server health:**
-```bash
-curl http://localhost:3000/health
-```
-
-**Test MCP tool listing:**
-```bash
-curl http://localhost:3000/mcp/tools
-```
+WIP
 
 ### Integrating with Agents
 
-To connect an AI agent to this MCP server:
-
-1. Configure your MCP client with the server endpoint
-2. Authenticate using the MCP protocol handshake
-3. Query available tools using the `list_tools` method
-4. Invoke tools with appropriate parameters
-
-**Example MCP client configuration:**
-```json
-{
-  "mcpServers": {
-    "db-timetable": {
-      "command": "node",
-      "args": ["/path/to/DB-TimetableAPI-MCPServer/index.js"],
-      "env": {
-        "DB_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
+WIP
 
 ---
 
-## 🔧 MCP Tools & Functions
+## 🔧 MCP Tools & Functions (Planned/Work in prgress)
 
 The server exposes the following MCP tools for AI agents:
 
-### `get_station_departures`
-Retrieve departures for a specific station.
-
-**Parameters:**
-- `station_id` (string, required): Station identifier or name
-- `date` (string, optional): Date in YYYY-MM-DD format (default: today)
-- `time` (string, optional): Time in HH:MM format (default: now)
-
-**Returns:** List of departures with train details, platforms, and delays
-
----
-
-### `get_station_arrivals`
-Retrieve arrivals for a specific station.
-
-**Parameters:**
-- `station_id` (string, required): Station identifier or name
-- `date` (string, optional): Date in YYYY-MM-DD format
-- `time` (string, optional): Time in HH:MM format
-
-**Returns:** List of arrivals with train details and status
-
----
-
-### `search_stations`
-Find stations by name or location.
-
-**Parameters:**
-- `query` (string, required): Station name or search term
-- `limit` (number, optional): Maximum results to return (default: 10)
-
-**Returns:** List of matching stations with metadata
-
----
-
-### `get_train_status`
-Get real-time status for a specific train.
-
-**Parameters:**
-- `train_id` (string, required): Train identifier (e.g., "ICE 123")
-- `date` (string, optional): Date of travel
-
-**Returns:** Current train status, delays, and route information
-
----
-
-### `get_station_details`
-Retrieve detailed information about a station.
-
-**Parameters:**
-- `station_id` (string, required): Station identifier
-
-**Returns:** Station facilities, services, and metadata
+WIP
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Here's how you can help:
+We welcome contributions from the community!
 
-### Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally
-3. **Create a feature branch**: `git checkout -b feature/your-feature-name`
-4. **Make your changes** with clear, descriptive commits
-5. **Write or update tests** for your changes
-6. **Submit a pull request** with a detailed description
-
-### Contribution Guidelines
-
-- Follow existing code style and conventions
-- Write clear commit messages
-- Add tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
-- Keep PRs focused on a single feature or fix
-
-### Code of Conduct
-
-- Be respectful and inclusive
-- Provide constructive feedback
-- Focus on collaboration and learning
-
-### Reporting Issues
-
-Found a bug or have a feature request?
-- Search existing issues first
-- Use issue templates when available
-- Provide detailed reproduction steps
-- Include relevant logs and error messages
+Feel free to open an issue or provide a PR. 
 
 ---
 
@@ -420,20 +246,9 @@ When using this software, ensure compliance with all applicable licenses and ter
 - [Anthropic MCP Documentation](https://www.anthropic.com/news/model-context-protocol)
 - [MCP Server Examples](https://github.com/modelcontextprotocol/servers)
 
-### Community & Support
-
-- **Issues**: [GitHub Issues](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/discussions)
-- **Contact**: For questions or support, please open an issue on GitHub
-
 ---
 
 ## 🙏 Acknowledgments
 
 - **Deutsche Bahn** for providing the Timetable API
 - **Anthropic** for developing the Model Context Protocol
-- All contributors to this open-source project
-
----
-
-**Made with ❤️ by the open-source community**
