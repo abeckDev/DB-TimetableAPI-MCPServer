@@ -63,7 +63,40 @@ For more information, visit the [official MCP documentation](https://modelcontex
 
 The following diagram illustrates how the DB-TimetableAPI-MCPServer fits into the overall solution:
 
-![Architecture Diagram](https://github.com/user-attachments/assets/3369c0c9-0b7d-4153-9376-d44b0fdeba42)
+```mermaid
+flowchart LR
+    subgraph API["DB Timetable API"]
+        DB[("Deutsche Bahn<br/>Timetable API")]
+    end
+    
+    subgraph Server["Timetable MCP Server<br/><b>(This Repository)</b>"]
+        MCP["MCP Server<br/>Implementation"]
+        Tools["Offer Timetable<br/>MCP Tools"]
+        MCP --> Tools
+    end
+    
+    subgraph Agent["Timetable Agent<br/><i>(Not in Scope)</i>"]
+        TA["Timetable Agent<br/>Orchestrator"]
+    end
+    
+    subgraph Clients["Client Applications<br/><i>(Not in Scope)</i>"]
+        Mobile["📱 Mobile Apps"]
+        Web["🌐 Websites"]
+        Phone["📞 Phone"]
+    end
+    
+    DB -->|"API Auth"| MCP
+    MCP -->|"Timetable Data"| Tools
+    Tools -->|"Expose MCP Tools"| TA
+    TA --> Mobile
+    TA --> Web
+    TA --> Phone
+    
+    style Server fill:#e1f5ff,stroke:#0288d1,stroke-width:3px
+    style API fill:#f5f5f5,stroke:#666,stroke-width:2px
+    style Agent fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style Clients fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+```
 
 ### Component Flow
 
