@@ -23,7 +23,7 @@ public static class Tools
         }
 
         [McpServerTool]
-        [Description("Get full timetable changes for a specific train event. The data includes all known changes from now on until ndefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.")]
+        [Description("Get full timetable changes for a specific train event. The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.")]
         public async Task<string> GetFullTimetableChanges(
             [Description("Event number (EVA number) of the train event")] string eventNo)
         {
