@@ -135,7 +135,16 @@ Before setting up the MCP server, ensure you have the following:
 
 ### System Requirements
 
-WIP
+- **.NET 9.0 SDK** or later
+  - Download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download)
+  - Verify installation: `dotnet --version`
+- **Node.js** (LTS version recommended)
+  - Required for MCP Inspector debugging tool
+  - Download from [nodejs.org](https://nodejs.org/)
+  - Verify installation: `node --version` and `npm --version`
+- **Git** for version control
+- **Visual Studio Code** (recommended for devcontainer support)
+  - Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for devcontainer support
 
 ### DB API Access
 
@@ -153,16 +162,87 @@ You must obtain API credentials from Deutsche Bahn:
 
 ## 🚀 Installation
 
-Work in progress. 
+### Clone the Repository
+
+```bash
+git clone https://github.com/abeckDev/DB-TimetableAPI-MCPServer.git
+cd DB-TimetableAPI-MCPServer
+```
+
+### Restore NuGet Packages
+
+```bash
+dotnet restore
+```
+
+### Build the Project
+
+```bash
+dotnet build
+```
+
+The project should build successfully. If you encounter any issues, ensure you have .NET 9.0 SDK installed. 
 
 ---
 
 ## ⚙️ Configuration
 
-### Environment Variables
+### Setting up API Credentials
 
+The MCP server requires Deutsche Bahn API credentials to function. You can configure these in two ways:
+
+#### Option 1: Using appsettings.Development.json (Recommended for Local Development)
+
+1. Navigate to the project directory:
+   ```bash
+   cd AbeckDev.DbTimetable.Mcp
+   ```
+
+2. Create or edit `appsettings.Development.json`:
+   ```json
+   {
+     "Logging": {
+       "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+       }
+     },
+     "DeutscheBahnApi": {
+       "BaseUrl": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/",
+       "ClientId": "your-actual-client-id",
+       "ApiKey": "your-actual-api-key"
+     }
+   }
+   ```
+
+   ⚠️ **Note**: The `appsettings.Development.json` file is already in `.gitignore` to prevent accidentally committing your credentials.
+
+#### Option 2: Using Environment Variables
+
+You can also configure the server using environment variables:
+
+```bash
+export DeutscheBahnApi__ClientId="your-actual-client-id"
+export DeutscheBahnApi__ApiKey="your-actual-api-key"
+export DeutscheBahnApi__BaseUrl="https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/"
+```
+
+For Windows PowerShell:
+```powershell
+$env:DeutscheBahnApi__ClientId="your-actual-client-id"
+$env:DeutscheBahnApi__ApiKey="your-actual-api-key"
+$env:DeutscheBahnApi__BaseUrl="https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/"
+```
 
 ### Configuration Options
+
+The following configuration options are available under the `DeutscheBahnApi` section:
+
+| Option | Description | Required | Default |
+|--------|-------------|----------|---------|
+| `BaseUrl` | Base URL for the Deutsche Bahn Timetable API | Yes | `https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/` |
+| `ClientId` | Your DB API Client ID from the marketplace | Yes | - |
+| `ApiKey` | Your DB API Key from the marketplace | Yes | - |
 
 ### API Rate Limits
 
@@ -178,19 +258,339 @@ Configure appropriate caching and request throttling in your deployment.
 
 ### Starting the MCP Server
 
-WIP
+#### Running Locally (Command Line)
 
-### Integrating with Agents
+1. Navigate to the project directory:
+   ```bash
+   cd AbeckDev.DbTimetable.Mcp
+   ```
 
-WIP
+2. Run the server:
+   ```bash
+   dotnet run
+   ```
+
+3. The server will start and listen on `http://0.0.0.0:3001`
+   - The MCP endpoint is available at: `http://localhost:3001/mcp`
+
+4. You should see output similar to:
+   ```
+   info: Microsoft.Hosting.Lifetime[14]
+         Now listening on: http://0.0.0.0:3001
+   info: Microsoft.Hosting.Lifetime[0]
+         Application started. Press Ctrl+C to shut down.
+   ```
+
+#### Using VS Code Tasks
+
+The project includes pre-configured VS Code tasks for easier development:
+
+1. Open the project in VS Code
+2. Press `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) to run the default build task
+3. Use `Terminal > Run Task...` to access other tasks:
+   - `build-solution`: Build the entire solution
+   - `run-mcp-server`: Run the MCP server
+   - `build-and-run-server`: Build and run the server in sequence
+
+### Debugging the MCP Server
+
+The MCP server can be debugged using the **MCP Inspector**, a visual debugging tool for Model Context Protocol servers.
+
+#### Debugging with VS Code (Recommended)
+
+The repository includes a pre-configured debug launch configuration:
+
+1. **Install MCP Inspector** (if not already installed):
+   ```bash
+   npm install -g @modelcontextprotocol/inspector
+   ```
+
+2. **Configure your API credentials** in `appsettings.Development.json` as described in the Configuration section
+
+3. **Open the project in VS Code**
+
+4. **Start debugging**:
+   - Press `F5` or go to `Run > Start Debugging`
+   - Select "Debug MCP Server with Inspector (HTTP)" configuration
+   - This will:
+     - Build the solution
+     - Start the MCP server on port 3001
+     - Launch MCP Inspector on port 6274
+     - Automatically open the Inspector UI in your browser
+
+5. **Use the MCP Inspector**:
+   - The Inspector provides a web-based interface to interact with your MCP server
+   - Test the available tools (GetStationBoard, GetStationChanges, etc.)
+   - View requests and responses in real-time
+   - Debug issues with your MCP implementation
+
+#### Manual Debugging Setup
+
+If you prefer to run components separately:
+
+1. **Start the MCP Server** in one terminal:
+   ```bash
+   cd AbeckDev.DbTimetable.Mcp
+   dotnet run
+   ```
+
+2. **Start MCP Inspector** in another terminal:
+   ```bash
+   npx @modelcontextprotocol/inspector --transport http --server-url http://localhost:3001/mcp
+   ```
+
+3. **Open the Inspector** in your browser:
+   - The Inspector will output a URL like: `http://localhost:6274`
+   - Open this URL in your browser to access the debugging interface
+
+### Testing the Server
+
+Once the server is running, you can test it using the MCP Inspector:
+
+1. **List Available Tools**:
+   - In the MCP Inspector, click "List Tools" to see all available MCP tools
+   - You should see: `GetStationBoard`, `GetStationChanges`, `GetFullTimetableChanges`, `GetStationDetails`
+
+2. **Test GetStationDetails**:
+   - Select the `GetStationDetails` tool
+   - Enter a station name like "Frankfurt" or "Berlin"
+   - Click "Call Tool" to execute
+   - View the XML response with station information
+
+3. **Test GetStationBoard**:
+   - Select the `GetStationBoard` tool
+   - Enter an EVA station number (e.g., `8000105` for Frankfurt Hauptbahnhof)
+   - Optionally provide a date/time in format `yyyy-MM-dd HH:mm`
+   - Click "Call Tool" to see arrivals and departures
+
+### Integrating with AI Agents
+
+To integrate this MCP server with AI agents or client applications:
+
+1. **Connect to the MCP endpoint**: `http://localhost:3001/mcp`
+2. **Use HTTP transport** as configured in this implementation
+3. **Available Tools**:
+   - `GetStationBoard`: Retrieve departures and arrivals for a station
+   - `GetStationChanges`: Get recent changes (delays, cancellations)
+   - `GetFullTimetableChanges`: Get all timetable changes for an event
+   - `GetStationDetails`: Search for station information
+
+For production deployments, consider:
+- Using HTTPS with proper SSL certificates
+- Implementing rate limiting and caching
+- Adding authentication/authorization
+- Deploying behind a reverse proxy
 
 ---
 
-## 🔧 MCP Tools & Functions (Planned/Work in prgress)
+## 🐳 Development with DevContainers
 
-The server exposes the following MCP tools for AI agents:
+This project includes a complete DevContainer configuration for VS Code, providing a consistent development environment with all required tools pre-installed.
 
-WIP
+### What is a DevContainer?
+
+DevContainers (Development Containers) allow you to use a Docker container as a full-featured development environment. This ensures:
+- Consistent development environment across all team members
+- No need to install .NET, Node.js, or other tools locally
+- Isolated environment that doesn't affect your local system
+- Pre-configured with all necessary extensions and tools
+
+### Prerequisites for DevContainers
+
+- **Docker Desktop** installed and running
+  - [Windows/macOS](https://www.docker.com/products/docker-desktop)
+  - [Linux](https://docs.docker.com/engine/install/)
+- **Visual Studio Code** with the **Dev Containers extension**
+  - Install from: [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+### Opening the Project in a DevContainer
+
+1. **Clone the repository** (if you haven't already):
+   ```bash
+   git clone https://github.com/abeckDev/DB-TimetableAPI-MCPServer.git
+   cd DB-TimetableAPI-MCPServer
+   ```
+
+2. **Open in VS Code**:
+   ```bash
+   code .
+   ```
+
+3. **Reopen in Container**:
+   - VS Code should detect the `.devcontainer` configuration
+   - A notification will appear: "Folder contains a Dev Container configuration file"
+   - Click **"Reopen in Container"**
+   - Alternatively, press `F1` and select **"Dev Containers: Reopen in Container"**
+
+4. **Wait for Container Build**:
+   - The first time will take several minutes as it builds the container
+   - The container includes:
+     - .NET 9.0 SDK
+     - Node.js LTS
+     - Azure CLI
+     - MCP Inspector (automatically installed)
+     - All necessary VS Code extensions
+
+5. **Start Developing**:
+   - Once the container is ready, you can immediately start coding
+   - All terminals in VS Code will run inside the container
+   - The project is automatically restored and ready to build
+
+### DevContainer Features
+
+The DevContainer is configured with:
+
+- **Base Image**: `mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm`
+- **Installed Tools**:
+  - .NET 9.0 SDK
+  - Node.js LTS
+  - Azure CLI
+  - MCP Inspector (via npm)
+- **VS Code Extensions**:
+  - C# Dev Kit
+  - C# Extension
+  - Azure CLI Extension
+  - GitHub Copilot (if available)
+  - GitHub Actions Extension
+  - VS Code Icons
+- **Port Forwarding**:
+  - Port 3001: MCP Server
+  - Port 6274: MCP Inspector
+  - Port 6277: MCP Inspector Proxy
+
+### Configuring API Credentials in DevContainer
+
+After opening the project in a DevContainer:
+
+1. Create `AbeckDev.DbTimetable.Mcp/appsettings.Development.json` with your credentials:
+   ```json
+   {
+     "Logging": {
+       "LogLevel": {
+         "Default": "Information",
+         "Microsoft.AspNetCore": "Warning"
+       }
+     },
+     "DeutscheBahnApi": {
+       "BaseUrl": "https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/",
+       "ClientId": "your-actual-client-id",
+       "ApiKey": "your-actual-api-key"
+     }
+   }
+   ```
+
+2. Start debugging with `F5` as described in the debugging section
+
+### Benefits of Using DevContainers
+
+✅ **Consistency**: Everyone on the team uses the exact same development environment
+✅ **Quick Setup**: New contributors can start coding in minutes
+✅ **Isolation**: Development environment doesn't interfere with your local system
+✅ **Pre-configured**: All tools, extensions, and settings are ready to use
+✅ **Reproducibility**: Environment can be version-controlled alongside the code
+
+---
+
+## 🔧 MCP Tools & Functions
+
+The server exposes the following MCP tools for AI agents to interact with Deutsche Bahn's Timetable API:
+
+### 1. GetStationBoard
+
+**Description**: Get station board (departures and arrivals) for a specific station.
+
+**Parameters**:
+- `evaNo` (required): EVA station number (e.g., `8000105` for Frankfurt Hauptbahnhof)
+- `dateTime` (optional): Date and time in format `yyyy-MM-dd HH:mm` (UTC). Leave empty for current time.
+
+**Returns**: XML data with train schedules including:
+- Train numbers and categories (ICE, IC, RE, etc.)
+- Departure/arrival times
+- Platforms
+- Destinations/origins
+- Train paths
+
+**Example**:
+```json
+{
+  "evaNo": "8000105",
+  "dateTime": "2025-11-05 18:30"
+}
+```
+
+### 2. GetStationChanges
+
+**Description**: Get all current changes (delays, cancellations, platform changes) for a specific station. Data includes only those changes that became known within the last 2 minutes.
+
+**Parameters**:
+- `evaNo` (required): EVA station number
+
+**Returns**: XML data with recent changes including:
+- Delays
+- Cancellations
+- Platform changes
+- Other real-time updates
+
+**Example**:
+```json
+{
+  "evaNo": "8000105"
+}
+```
+
+### 3. GetFullTimetableChanges
+
+**Description**: Get full timetable changes for a specific train event. The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.
+
+**Parameters**:
+- `eventNo` (required): Event number (EVA number) of the train event
+
+**Returns**: XML data with comprehensive change history for the event
+
+**Example**:
+```json
+{
+  "eventNo": "1234567890"
+}
+```
+
+### 4. GetStationDetails
+
+**Description**: Get information about stations.
+
+**Parameters**:
+- `pattern` (required): Either a station name (prefix), EVA number, DS100/RL100 code, or wildcard (`*`). 
+  - Note: Doesn't work well with umlauts in station names
+  - Examples: `"Frankfurt"`, `"8000105"`, `"*"`
+
+**Returns**: XML data with station information including:
+- Station names
+- EVA numbers
+- Location coordinates
+- Available facilities
+- Station codes
+
+**Example**:
+```json
+{
+  "pattern": "Frankfurt"
+}
+```
+
+### Common EVA Station Numbers
+
+Here are some commonly used EVA station numbers for testing:
+
+| Station | EVA Number |
+|---------|------------|
+| Frankfurt (Main) Hauptbahnhof | 8000105 |
+| Berlin Hauptbahnhof | 8011160 |
+| München Hauptbahnhof | 8000261 |
+| Hamburg Hauptbahnhof | 8002549 |
+| Köln Hauptbahnhof | 8000207 |
+| Dresden Hauptbahnhof | 8010085 |
+
+You can find more EVA numbers using the `GetStationDetails` tool with a station name pattern.
 
 ---
 
