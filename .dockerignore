@@ -1,0 +1,47 @@
+# .NET build artifacts
+**/bin/
+**/obj/
+**/out/
+**/TestResults/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+*.md
+LICENSE
+
+# CI/CD
+.github/
+
+# Development containers
+.devcontainer/
+
+# Environment files
+*.env
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Test artifacts
+coverage*.json
+coverage*.xml
+*.trx
+
+# OS files
+.DS_Store
+Thumbs.db
