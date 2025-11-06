@@ -26,27 +26,6 @@ The MCP server acts as a standardized bridge, allowing AI agents to interact wit
 
 ---
 
-## 🤖 What is Model Context Protocol (MCP)?
-
-The **Model Context Protocol (MCP)** is an open standard developed by Anthropic that simplifies how AI agents connect to external systems, tools, and data sources. Think of it as "USB-C for AI" - a universal connector that eliminates the need for custom integrations.
-
-### Key Concepts
-
-- **MCP Host**: The environment where the AI agent lives (e.g., chatbot interface, IDE)
-- **MCP Client**: A bridge that converts user requests into MCP-compliant messages
-- **MCP Server**: The backend service (like this project) that performs operations and fetches data
-
-### Why MCP?
-
-- **Standardization**: One protocol to connect AI agents with any data source
-- **Modularity**: Reusable server components that work across different AI applications
-- **Real-time Context**: Enables AI agents to access live data beyond their training set
-- **Scalability**: Reduces integration complexity as your AI ecosystem grows
-
-For more information, visit the [official MCP documentation](https://modelcontextprotocol.io/).
-
----
-
 ## 🏗️ Architecture
 
 The following diagram illustrates how the DB-TimetableAPI-MCPServer fits into the overall solution:
@@ -109,6 +88,27 @@ flowchart LR
    - End-user interfaces for timetable information
 
 **This repository implements only the MCP Server component.**
+
+---
+
+## 🤖 What is Model Context Protocol (MCP)?
+
+The **Model Context Protocol (MCP)** is an open standard developed by Anthropic that simplifies how AI agents connect to external systems, tools, and data sources. Think of it as "USB-C for AI" - a universal connector that eliminates the need for custom integrations.
+
+### Key Concepts
+
+- **MCP Host**: The environment where the AI agent lives (e.g., chatbot interface, IDE)
+- **MCP Client**: A bridge that converts user requests into MCP-compliant messages
+- **MCP Server**: The backend service (like this project) that performs operations and fetches data
+
+### Why MCP?
+
+- **Standardization**: One protocol to connect AI agents with any data source
+- **Modularity**: Reusable server components that work across different AI applications
+- **Real-time Context**: Enables AI agents to access live data beyond their training set
+- **Scalability**: Reduces integration complexity as your AI ecosystem grows
+
+For more information, visit the [official MCP documentation](https://modelcontextprotocol.io/).
 
 ---
 
