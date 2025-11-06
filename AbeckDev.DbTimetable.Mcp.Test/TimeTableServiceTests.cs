@@ -360,4 +360,113 @@ public class TimeTableServiceTests
         // Assert
         VerifyHttpRequest(mockHandler, $"station/{pattern}", _config.ClientId, _config.ApiKey);
     }
+
+    [Fact]
+    public async Task FindTrainConnectionsAsync_WithValidStations_ReturnsAnalysisReport()
+    {
+        // Arrange
+        var stationXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+            <stations>
+                <station name=""Frankfurt Hbf"" eva=""8000105"" ds100=""FF""/>
+            </stations>";
+        
+        var timetableXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+            <timetable station=""Frankfurt Hbf"">
+                <s id=""1"">
+                    <tl c=""ICE"" n=""123"" f=""Berlin Hbf""/>
+                    <dp pt=""2511061430"" pp=""7"" ppth=""Frankfurt Hbf|Mannheim|Heidelberg|Berlin Hbf""/>
+                </s>
+            </timetable>";
+
+        var changesXml = @"<?xml version=""1.0"" encoding=""UTF-8""?><timetable/>";
+
+        var mockHandler = new Mock<HttpMessageHandler>();
+        var requestCount = 0;
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() =>
+            {
+                requestCount++;
+                // First two calls are station lookups, third is timetable, fourth is changes
+                if (requestCount <= 2)
+                    return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(stationXml) };
+                if (requestCount == 3)
+                    return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(timetableXml) };
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(changesXml) };
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object) { BaseAddress = new Uri(_config.BaseUrl) };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+
+        // Act
+        var result = await service.FindTrainConnectionsAsync("Frankfurt", "Berlin");
+
+        // Assert
+        Assert.Contains("Train Connection Analysis", result);
+        Assert.Contains("Frankfurt Hbf", result);
+        Assert.Contains("EVA: 8000105", result);
+    }
+
+    [Fact]
+    public async Task FindTrainConnectionsAsync_WithInvalidStationA_ReturnsError()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                Content = new StringContent("Not Found")
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object) { BaseAddress = new Uri(_config.BaseUrl) };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+
+        // Act
+        var result = await service.FindTrainConnectionsAsync("InvalidStation", "Berlin");
+
+        // Assert
+        Assert.Contains("Could not find station 'InvalidStation'", result);
+    }
+
+    [Fact]
+    public async Task FindTrainConnectionsAsync_WithInvalidStationB_ReturnsError()
+    {
+        // Arrange
+        var stationAXml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+            <stations>
+                <station name=""Frankfurt Hbf"" eva=""8000105"" ds100=""FF""/>
+            </stations>";
+
+        var mockHandler = new Mock<HttpMessageHandler>();
+        var requestCount = 0;
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(() =>
+            {
+                requestCount++;
+                if (requestCount == 1)
+                    return new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(stationAXml) };
+                return new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent("Not Found") };
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object) { BaseAddress = new Uri(_config.BaseUrl) };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+
+        // Act
+        var result = await service.FindTrainConnectionsAsync("Frankfurt", "InvalidStation");
+
+        // Assert
+        Assert.Contains("Could not find station 'InvalidStation'", result);
+    }
 }

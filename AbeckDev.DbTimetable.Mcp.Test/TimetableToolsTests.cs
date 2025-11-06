@@ -292,4 +292,129 @@ public class TimetableToolsTests
         Assert.Contains("Unexpected error:", result);
         Assert.Contains(exceptionMessage, result);
     }
+
+    [Fact]
+    public async Task FindTrainConnections_WithValidStations_ReturnsConnectionAnalysis()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var expectedResult = "=== Train Connection Analysis ===\nConnections found";
+        
+        _mockService.Setup(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default))
+            .ReturnsAsync(expectedResult);
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, null);
+
+        // Assert
+        Assert.Equal(expectedResult, result);
+        _mockService.Verify(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task FindTrainConnections_WithValidDateTime_ParsesAndCallsService()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var dateTimeString = "2025-11-06 14:30";
+        var parsedDateTime = DateTime.Parse(dateTimeString);
+        var expectedResult = "Connections found";
+        
+        _mockService.Setup(s => s.FindTrainConnectionsAsync(stationA, stationB, parsedDateTime, default))
+            .ReturnsAsync(expectedResult);
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, dateTimeString);
+
+        // Assert
+        Assert.Equal(expectedResult, result);
+        _mockService.Verify(s => s.FindTrainConnectionsAsync(stationA, stationB, parsedDateTime, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task FindTrainConnections_WithInvalidDateTimeFormat_ReturnsErrorMessage()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var invalidDateTime = "invalid-date-format";
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, invalidDateTime);
+
+        // Assert
+        Assert.Contains("Error: Invalid date format", result);
+        Assert.Contains("yyyy-MM-dd HH:mm", result);
+    }
+
+    [Fact]
+    public async Task FindTrainConnections_WithEmptyDateTime_CallsServiceWithNull()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var expectedResult = "Connections found";
+        
+        _mockService.Setup(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default))
+            .ReturnsAsync(expectedResult);
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, "");
+
+        // Assert
+        Assert.Equal(expectedResult, result);
+        _mockService.Verify(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default), Times.Once);
+    }
+
+    [Fact]
+    public async Task FindTrainConnections_WithHttpRequestException_ReturnsErrorMessage()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var exceptionMessage = "Network error";
+        
+        _mockService.Setup(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default))
+            .ThrowsAsync(new HttpRequestException(exceptionMessage));
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, null);
+
+        // Assert
+        Assert.Contains("Error finding train connections:", result);
+        Assert.Contains(exceptionMessage, result);
+    }
+
+    [Fact]
+    public async Task FindTrainConnections_WithGeneralException_ReturnsUnexpectedErrorMessage()
+    {
+        // Arrange
+        var stationA = "Frankfurt";
+        var stationB = "Berlin";
+        var exceptionMessage = "Unexpected error";
+        
+        _mockService.Setup(s => s.FindTrainConnectionsAsync(stationA, stationB, null, default))
+            .ThrowsAsync(new InvalidOperationException(exceptionMessage));
+
+        var tools = new Tools.TimetableTools(_mockService.Object);
+
+        // Act
+        var result = await tools.FindTrainConnections(stationA, stationB, null);
+
+        // Assert
+        Assert.Contains("Unexpected error:", result);
+        Assert.Contains(exceptionMessage, result);
+    }
 }
