@@ -21,4 +21,9 @@ public interface ITimeTableService
     /// Get information about stations given either a station name (prefix), eva number, ds100/rl100 code, wildcard (*); doesn't seem to work with umlauten in station name (prefix)
     /// </summary>
     Task<string> GetStationInformation(string pattern, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Find train connections between two stations and assess their current status including delays and disruptions
+    /// </summary>
+    Task<string> FindTrainConnectionsAsync(string stationA, string stationB, DateTime? dateTime = null, CancellationToken cancellationToken = default);
 }

@@ -113,5 +113,40 @@ public static class Tools
                 return $"Unexpected error: {ex.Message}";
             }
         }
+
+        [McpServerTool]
+        [Description("Find and assess train connections between two stations. Takes station names or EVA numbers as input, validates them, finds all trains operating between the stations, checks for current delays and disruptions, and provides ranked connection options with recommendations.")]
+        public async Task<string> FindTrainConnections(
+            [Description("Starting station name or EVA number (e.g., 'Frankfurt Hbf' or '8000105')")] string stationA,
+            [Description("Destination station name or EVA number (e.g., 'Berlin Hbf' or '8011160')")] string stationB,
+            [Description("Date and time in format 'yyyy-MM-dd HH:mm' (UTC). Leave empty for current time.")] string? dateTime = null)
+        {
+            try
+            {
+                DateTime? parsedDate = null;
+                if (!string.IsNullOrEmpty(dateTime))
+                {
+                    if (DateTime.TryParse(dateTime, out var dt))
+                    {
+                        parsedDate = dt;
+                    }
+                    else
+                    {
+                        return "Error: Invalid date format. Please use 'yyyy-MM-dd HH:mm' format.";
+                    }
+                }
+
+                var result = await _timeTableService.FindTrainConnectionsAsync(stationA, stationB, parsedDate);
+                return result;
+            }
+            catch (HttpRequestException ex)
+            {
+                return $"Error finding train connections: {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                return $"Unexpected error: {ex.Message}";
+            }
+        }
     }
 }
