@@ -48,8 +48,9 @@ public class TimeTableService : ITimeTableService
         CancellationToken cancellationToken = default)
     {
         // Format: yyMMddHHmm (e.g., 2511051830 for 2025-11-05 18:30)
-        var dateParam = date?.ToString("yyMMdd") ?? DateTime.UtcNow.ToString("yyMMdd");
-        var hourParam = date?.ToString("HH") ?? DateTime.UtcNow.ToString("HH");
+        var germanTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time"));
+        var dateParam = date?.ToString("yyMMdd") ?? germanTime.ToString("yyMMdd");
+        var hourParam = date?.ToString("HH") ?? germanTime.ToString("HH");
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"plan/{evaNo}/{dateParam}/{hourParam}");
         request.Headers.Add("DB-Client-Id", _config.ClientId);
