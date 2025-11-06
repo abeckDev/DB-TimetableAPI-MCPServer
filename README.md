@@ -438,7 +438,7 @@ Once the server is running, you can test it using the MCP Inspector:
 
 1. **List Available Tools**:
    - In the MCP Inspector, click "List Tools" to see all available MCP tools
-   - You should see: `GetStationBoard`, `GetStationChanges`, `GetFullTimetableChanges`, `GetStationDetails`
+   - You should see: `GetStationBoard`, `GetStationChanges`, `GetFullTimetableChanges`, `GetStationDetails`, `FindTrainConnections`
 
 2. **Test GetStationDetails**:
    - Select the `GetStationDetails` tool
@@ -463,6 +463,7 @@ To integrate this MCP server with AI agents or client applications:
    - `GetStationChanges`: Get recent changes (delays, cancellations)
    - `GetFullTimetableChanges`: Get all timetable changes for an event
    - `GetStationDetails`: Search for station information
+   - `FindTrainConnections`: Find and assess train connections between two stations with delay information
 
 For production deployments, consider:
 - Using HTTPS with proper SSL certificates
@@ -664,6 +665,72 @@ The server exposes the following MCP tools for AI agents to interact with Deutsc
 {
   "pattern": "Frankfurt"
 }
+```
+
+### 5. FindTrainConnections
+
+**Description**: Find and assess train connections between two stations. This comprehensive tool validates station names, finds all trains operating between the stations, checks for current delays and disruptions, and provides ranked connection options with recommendations.
+
+**Parameters**:
+- `stationA` (required): Starting station name or EVA number (e.g., `"Frankfurt Hbf"` or `"8000105"`)
+- `stationB` (required): Destination station name or EVA number (e.g., `"Berlin Hbf"` or `"8011160"`)
+- `dateTime` (optional): Date and time in format `yyyy-MM-dd HH:mm` (UTC). Leave empty for current time.
+
+**Returns**: A comprehensive analysis report including:
+- Validated station names with EVA numbers
+- List of available train connections
+- Departure times (scheduled and actual)
+- Platform information
+- Current delays and delay duration
+- Cancellation status
+- Service messages and disruptions
+- Recommendation for best connection
+
+**Example**:
+```json
+{
+  "stationA": "Frankfurt Hbf",
+  "stationB": "Berlin Hbf",
+  "dateTime": "2025-11-06 14:30"
+}
+```
+
+**Sample Output**:
+```
+=== Train Connection Analysis ===
+
+Step 1: Resolving station 'Frankfurt Hbf'...
+  ✓ Found: Frankfurt(Main)Hbf (EVA: 8000105)
+
+Step 2: Resolving station 'Berlin Hbf'...
+  ✓ Found: Berlin Hbf (EVA: 8011160)
+
+Step 3: Fetching departures from Frankfurt(Main)Hbf...
+  ✓ Timetable retrieved
+
+Step 4: Checking for delays and disruptions at Frankfurt(Main)Hbf...
+  ✓ Recent changes retrieved
+
+Step 5: Finding trains from Frankfurt(Main)Hbf to Berlin Hbf...
+  ✓ Found 3 connection(s)
+
+=== Available Connections ===
+
+Option 1: ICE 1234
+  Departure: 14:30 from Frankfurt(Main)Hbf
+  Platform: 7
+  ✓ On time
+  Destination: Berlin Hbf
+
+Option 2: ICE 5678
+  Departure: 15:30 from Frankfurt(Main)Hbf
+  Platform: 9
+  ⚠ Originally scheduled: 15:25
+  ⚠ Delay: +5 minutes
+  Destination: Berlin Hbf
+
+=== Recommendation ===
+✓ Best option: ICE 1234 at 14:30 - On time
 ```
 
 ### Common EVA Station Numbers
