@@ -318,13 +318,17 @@ public class TimeTableService : ITimeTableService
                                  stop.Element("dp")?.Attribute("ppth")?.Value?.Split('|').LastOrDefault() ?? "";
 
                 // Check if the destination station or path contains our target station
-                // This is a heuristic - in reality we'd need to check the full route
+                // This is a heuristic - the actual route might not be fully represented
+                // We use the first word of the station name for matching to handle complex station names
                 var pathStations = path.Split('|').Select(s => s.Trim()).ToList();
+                var stationBFirstWord = GetFirstWord(stationB.Name);
+                
                 var goesToDestination = pathStations.Any(ps => 
                     ps.Equals(stationB.Name, StringComparison.OrdinalIgnoreCase) ||
-                    ps.Contains(stationB.Name.Split(' ')[0], StringComparison.OrdinalIgnoreCase));
+                    (!string.IsNullOrEmpty(stationBFirstWord) && ps.Contains(stationBFirstWord, StringComparison.OrdinalIgnoreCase)));
 
-                if (!goesToDestination && !destination.Contains(stationB.Name.Split(' ')[0], StringComparison.OrdinalIgnoreCase))
+                if (!goesToDestination && 
+                    (string.IsNullOrEmpty(stationBFirstWord) || !destination.Contains(stationBFirstWord, StringComparison.OrdinalIgnoreCase)))
                 {
                     continue; // Skip trains that don't go to our destination
                 }
@@ -388,6 +392,7 @@ public class TimeTableService : ITimeTableService
 
     /// <summary>
     /// Parse Deutsche Bahn timetable date format (YYMMddHHmm)
+    /// Example: "2511061430" represents 2025-11-06 14:30 (YY=25, MM=11, dd=06, HH=14, mm=30)
     /// </summary>
     private DateTime? ParseTimetableDateTime(string? dateTimeStr)
     {
@@ -410,6 +415,19 @@ public class TimeTableService : ITimeTableService
         catch { }
 
         return null;
+    }
+
+    /// <summary>
+    /// Helper method to safely get the first word from a station name
+    /// Returns empty string if the input is null or empty
+    /// </summary>
+    private string GetFirstWord(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return "";
+        
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length > 0 ? words[0] : "";
     }
 
     /// <summary>
