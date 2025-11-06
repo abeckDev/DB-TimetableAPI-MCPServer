@@ -313,9 +313,11 @@ public class TimeTableService : ITimeTableService
             foreach (var stop in stops)
             {
                 // Check if this train goes to the destination by looking at the path (ppth) or final destination
-                var path = stop.Attribute("ppth")?.Value ?? "";
+                // The ppth attribute is on the dp (departure) element, not on the s (stop) element
+                var departureElement = stop.Element("dp");
+                var path = departureElement?.Attribute("ppth")?.Value ?? "";
                 var destination = stop.Element("tl")?.Attribute("f")?.Value ?? 
-                                 stop.Element("dp")?.Attribute("ppth")?.Value?.Split('|').LastOrDefault() ?? "";
+                                 path.Split('|').LastOrDefault() ?? "";
 
                 // Check if the destination station or path contains our target station
                 // This is a heuristic - the actual route might not be fully represented
@@ -338,7 +340,6 @@ public class TimeTableService : ITimeTableService
                 var trainType = trainElement?.Attribute("c")?.Value ?? "";
                 var trainNumber = trainElement?.Attribute("n")?.Value ?? "";
 
-                var departureElement = stop.Element("dp");
                 if (departureElement == null) continue; // Only interested in departures
 
                 var scheduledDeparture = departureElement.Attribute("pt")?.Value;
