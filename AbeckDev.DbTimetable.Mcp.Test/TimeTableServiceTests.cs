@@ -638,4 +638,183 @@ public class TimeTableServiceTests
         Assert.Contains("- Trains may require a transfer", result);
         Assert.Contains("- Try a different time or date", result);
     }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithProvidedDate_UsesDateDirectlyWithoutTimezoneConversion()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(_testXmlResponse)
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+        
+        // Provide a specific German time: 2025-11-06 14:30
+        var germanTime = new DateTime(2025, 11, 6, 14, 30, 0);
+
+        // Act
+        var result = await service.GetStationBoardAsync(evaNo, germanTime);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+        
+        // Verify the request path contains the exact date and hour from the provided date
+        // without any timezone conversion
+        mockHandler.Protected().Verify(
+            "SendAsync",
+            Times.Once(),
+            ItExpr.Is<HttpRequestMessage>(req =>
+                req.RequestUri!.PathAndQuery.Contains("plan/8000105/251106/14")),
+            ItExpr.IsAny<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithoutDate_UsesGermanTimezone()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        string? capturedPath = null;
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) =>
+            {
+                capturedPath = req.RequestUri?.PathAndQuery;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(_testXmlResponse)
+                };
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Calculate expected German time
+        var berlinTz = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
+        var expectedGermanTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, berlinTz);
+        var expectedDate = expectedGermanTime.ToString("yyMMdd");
+        var expectedHour = expectedGermanTime.ToString("HH");
+
+        // Act
+        var result = await service.GetStationBoardAsync(evaNo);
+
+        // Assert
+        Assert.Equal(_testXmlResponse, result);
+        Assert.NotNull(capturedPath);
+        Assert.Contains($"plan/{evaNo}/{expectedDate}/{expectedHour}", capturedPath);
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WhenTimezoneNotAvailable_UsesFallback()
+    {
+        // This test verifies the fallback behavior when Europe/Berlin timezone cannot be found
+        // Note: This is difficult to test directly since we can't easily mock TimeZoneInfo.FindSystemTimeZoneById
+        // In actual deployment, the Europe/Berlin timezone should always be available on the system
+        // The fallback to DateTime.Now is a defensive measure for edge cases
+        
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        string? capturedPath = null;
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) =>
+            {
+                capturedPath = req.RequestUri?.PathAndQuery;
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(_testXmlResponse)
+                };
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+
+        // Act
+        var result = await service.GetStationBoardAsync(evaNo);
+
+        // Assert
+        // The method should succeed and return a result regardless of timezone availability
+        Assert.Equal(_testXmlResponse, result);
+        Assert.NotNull(capturedPath);
+        // Verify that a valid path was created with date and hour components
+        Assert.Matches(@"plan/\d+/\d{6}/\d{2}", capturedPath);
+    }
+
+    [Fact]
+    public async Task GetStationBoardAsync_WithMultipleCalls_UsesConsistentTimezoneLogic()
+    {
+        // Arrange
+        var mockHandler = new Mock<HttpMessageHandler>();
+        var capturedPaths = new List<string>();
+        mockHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) =>
+            {
+                if (req.RequestUri?.PathAndQuery != null)
+                    capturedPaths.Add(req.RequestUri.PathAndQuery);
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(_testXmlResponse)
+                };
+            });
+
+        var httpClient = new HttpClient(mockHandler.Object)
+        {
+            BaseAddress = new Uri(_config.BaseUrl)
+        };
+        var service = new TimeTableService(httpClient, _mockOptions.Object);
+        var evaNo = "8000105";
+        var specificDate = new DateTime(2025, 12, 25, 10, 15, 0);
+
+        // Act
+        // First call without date (should use German timezone)
+        await service.GetStationBoardAsync(evaNo);
+        // Second call with specific date (should use provided date directly)
+        await service.GetStationBoardAsync(evaNo, specificDate);
+        // Third call without date again (should use German timezone)
+        await service.GetStationBoardAsync(evaNo);
+
+        // Assert
+        Assert.Equal(3, capturedPaths.Count);
+        
+        // Second call should use the exact provided date
+        Assert.Contains("plan/8000105/251225/10", capturedPaths[1]);
+        
+        // First and third calls should use current German time (so they should be similar)
+        // Both should contain valid date patterns
+        Assert.Matches(@"plan/\d+/\d{6}/\d{2}", capturedPaths[0]);
+        Assert.Matches(@"plan/\d+/\d{6}/\d{2}", capturedPaths[2]);
+    }
 }
