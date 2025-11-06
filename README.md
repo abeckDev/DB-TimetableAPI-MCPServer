@@ -1,6 +1,7 @@
 # DB-TimetableAPI-MCPServer
 
 [![.NET CI with Code Coverage](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml/badge.svg)](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/dotnet-ci.yml)
+[![Docker Build and Publish](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/abeckDev/DB-TimetableAPI-MCPServer/actions/workflows/docker-publish.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![codecov](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer/graph/badge.svg?token=RJR3H1JRPW)](https://codecov.io/github/abeckDev/DB-TimetableAPI-MCPServer)
 
@@ -186,6 +187,90 @@ dotnet build
 ```
 
 The project should build successfully. If you encounter any issues, ensure you have .NET 9.0 SDK installed. 
+
+### Using Docker (Recommended for Production)
+
+The easiest way to run the MCP server is using Docker. Pre-built images are automatically published to the GitHub Container Registry.
+
+#### Pull and Run the Latest Image
+
+```bash
+# Pull the latest image from GitHub Container Registry
+docker pull ghcr.io/abeckdev/db-timetableapi-mcpserver:latest
+
+# Run the container with your API credentials
+docker run -d \
+  --name db-timetable-mcp \
+  -p 3001:3001 \
+  -e DeutscheBahnApi__ClientId="your-actual-client-id" \
+  -e DeutscheBahnApi__ApiKey="your-actual-api-key" \
+  -e DeutscheBahnApi__BaseUrl="https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/" \
+  ghcr.io/abeckdev/db-timetableapi-mcpserver:latest
+
+# Check if the container is running
+docker ps
+
+# View logs
+docker logs db-timetable-mcp
+```
+
+The MCP server will be accessible at `http://localhost:3001/mcp`.
+
+#### Build Your Own Docker Image
+
+If you prefer to build the Docker image locally:
+
+```bash
+# Build the image
+docker build -t db-timetableapi-mcpserver:local .
+
+# Run the container
+docker run -d \
+  --name db-timetable-mcp \
+  -p 3001:3001 \
+  -e DeutscheBahnApi__ClientId="your-actual-client-id" \
+  -e DeutscheBahnApi__ApiKey="your-actual-api-key" \
+  -e DeutscheBahnApi__BaseUrl="https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/" \
+  db-timetableapi-mcpserver:local
+```
+
+#### Docker Compose
+
+You can also use Docker Compose for easier management. Create a `docker-compose.yml` file:
+
+```yaml
+services:
+  mcp-server:
+    image: ghcr.io/abeckdev/db-timetableapi-mcpserver:latest
+    container_name: db-timetable-mcp
+    ports:
+      - "3001:3001"
+    environment:
+      - DeutscheBahnApi__ClientId=your-actual-client-id
+      - DeutscheBahnApi__ApiKey=your-actual-api-key
+      - DeutscheBahnApi__BaseUrl=https://apis.deutschebahn.com/db-api-marketplace/apis/timetables/v1/
+    restart: unless-stopped
+```
+
+Then run:
+
+```bash
+docker compose up -d
+```
+
+#### Docker Image Tags
+
+Images are tagged with multiple identifiers for flexibility:
+
+- `latest` - The most recent build from the main branch
+- `main` - Same as latest, tracks the main branch
+- `main-<sha>` - Specific commit SHA from the main branch (e.g., `main-abc1234`)
+
+Example pulling a specific version:
+
+```bash
+docker pull ghcr.io/abeckdev/db-timetableapi-mcpserver:main-a1b2c3d
+```
 
 ---
 
@@ -680,8 +765,24 @@ All pull requests automatically run:
 - ✅ All unit tests
 - ✅ Code coverage analysis
 - ✅ Coverage threshold checks (70% minimum)
+- ✅ Docker image build verification
 
 Coverage reports are available as workflow artifacts.
+
+### Continuous Deployment
+
+When changes are pushed to the `main` branch:
+- ✅ Docker images are automatically built
+- ✅ Images are tagged with multiple identifiers (latest, main, commit SHA)
+- ✅ Images are published to GitHub Container Registry (ghcr.io)
+- ✅ Images are publicly accessible at `ghcr.io/abeckdev/db-timetableapi-mcpserver`
+
+The Docker image includes:
+- Multi-stage build for optimized size
+- .NET 9.0 runtime on Debian Bookworm (slim variant)
+- Non-root user for enhanced security
+- Health check endpoint
+- Proper port exposure (3001)
 
 ---
 
