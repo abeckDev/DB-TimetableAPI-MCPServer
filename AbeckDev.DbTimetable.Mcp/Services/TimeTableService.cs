@@ -146,18 +146,18 @@ public class TimeTableService : ITimeTableService
             result.AppendLine("  ✓ Timetable retrieved");
             result.AppendLine();
 
-            // Step 4: Get changes for station A to check for delays/disruptions
+            // Step 4: Get full changes for station A to check for delays/disruptions
             result.AppendLine($"Step 4: Checking for delays and disruptions at {stationAInfo.Name}...");
             string changesA;
             try
             {
-                changesA = await GetRecentTimetableChangesAsync(stationAInfo.EvaNo, cancellationToken);
-                result.AppendLine("  ✓ Recent changes retrieved");
+                changesA = await GetFullChangesAsync(stationAInfo.EvaNo, cancellationToken);
+                result.AppendLine("  ✓ Full changes retrieved");
             }
             catch
             {
                 changesA = string.Empty;
-                result.AppendLine("  ⚠ No recent changes available");
+                result.AppendLine("  ⚠ No changes available");
             }
             result.AppendLine();
 
@@ -353,20 +353,71 @@ public class TimeTableService : ITimeTableService
                 var departureTime = ParseTimetableDateTime(actualDeparture);
                 var scheduledDepartureTime = ParseTimetableDateTime(scheduledDeparture);
 
-                // Calculate delay
+                // Look up live changes for this specific train from the full changes data
                 int delay = 0;
-                if (scheduledDepartureTime.HasValue && departureTime.HasValue)
+                bool isCancelled = departureElement.Attribute("cs")?.Value == "c";
+                string messages = string.Join("; ", stop.Elements("m")
+                    .Select(m => m.Attribute("t")?.Value)
+                    .Where(m => !string.IsNullOrEmpty(m)));
+
+                // If we have changes data, look for this specific train and extract live information
+                if (changesDoc != null)
+                {
+                    var changeStop = changesDoc.Descendants("s")
+                        .FirstOrDefault(s => s.Attribute("id")?.Value == trainId);
+
+                    if (changeStop != null)
+                    {
+                        var changeDp = changeStop.Element("dp");
+                        if (changeDp != null)
+                        {
+                            // Get live departure time from changes
+                            var liveActualDeparture = changeDp.Attribute("ct")?.Value;
+                            var liveScheduledDeparture = changeDp.Attribute("pt")?.Value;
+                            
+                            if (!string.IsNullOrEmpty(liveActualDeparture) && !string.IsNullOrEmpty(liveScheduledDeparture))
+                            {
+                                var liveDepartureTime = ParseTimetableDateTime(liveActualDeparture);
+                                var liveScheduledTime = ParseTimetableDateTime(liveScheduledDeparture);
+                                
+                                if (liveDepartureTime.HasValue && liveScheduledTime.HasValue)
+                                {
+                                    delay = (int)(liveDepartureTime.Value - liveScheduledTime.Value).TotalMinutes;
+                                    departureTime = liveDepartureTime; // Use live time
+                                }
+                            }
+
+                            // Check for cancellation status in changes
+                            var liveStatus = changeDp.Attribute("cs")?.Value;
+                            if (liveStatus == "c")
+                            {
+                                isCancelled = true;
+                            }
+
+                            // Get changed platform if available
+                            var liveChangedPlatform = changeDp.Attribute("cp")?.Value;
+                            if (!string.IsNullOrEmpty(liveChangedPlatform))
+                            {
+                                changedPlatform = liveChangedPlatform;
+                            }
+                        }
+
+                        // Get messages from changes (these are more up-to-date)
+                        var changeMessages = string.Join("; ", changeStop.Elements("m")
+                            .Select(m => m.Attribute("t")?.Value)
+                            .Where(m => !string.IsNullOrEmpty(m)));
+                        
+                        if (!string.IsNullOrEmpty(changeMessages))
+                        {
+                            messages = changeMessages;
+                        }
+                    }
+                }
+                // Fallback: if no changes data, calculate delay from timetable data
+                else if (scheduledDepartureTime.HasValue && departureTime.HasValue)
                 {
                     delay = (int)(departureTime.Value - scheduledDepartureTime.Value).TotalMinutes;
                 }
-
-                // Check for cancellation
-                var isCancelled = departureElement.Attribute("cs")?.Value == "c";
-
-                // Get messages
-                var messages = string.Join("; ", stop.Elements("m")
-                    .Select(m => m.Attribute("t")?.Value)
-                    .Where(m => !string.IsNullOrEmpty(m)));
 
                 connections.Add(new ConnectionInfo
                 {
