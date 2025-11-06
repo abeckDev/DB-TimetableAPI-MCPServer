@@ -23,8 +23,8 @@ public static class Tools
         }
 
         [McpServerTool]
-        [Description("Get full timetable changes for a specific train event. The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.")]
-        public async Task<string> GetFullTimetableChanges(
+        [Description("Get all known timetable changes for the station given by evaNo . The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.")]
+        public async Task<string> GetFullStationChanges(
             [Description("Event number (EVA number) of the train event")] string eventNo)
         {
             try
@@ -43,7 +43,7 @@ public static class Tools
         }
 
         [McpServerTool]
-        [Description("Get station board (departures and arrivals) for a specific station. Returns XML data with train schedules.")]
+        [Description("Get station board (departures and arrivals) for a specific station in hourly slices. Returns XML data with train schedules.")]
         public async Task<string> GetStationBoard(
             [Description("EVA station number (e.g., 8000105 for Frankfurt Hauptbahnhof)")] string evaNo,
             [Description("Date and time in format 'yyyy-MM-dd HH:mm' (UTC). Leave empty for current time.")] string? dateTime = null)
@@ -77,8 +77,8 @@ public static class Tools
         }
 
         [McpServerTool]
-        [Description("Get all current changes (delays, cancellations, platform changes) for a specific station. Recent changes are always a subset of the full changes. They may equal full changes but are typically much smaller. Data includes only those changes that became known within the last 2 minutes.")]
-        public async Task<string> GetStationChanges([Description("EVA station number (e.g., 8000105 for Frankfurt Hauptbahnhof)")] string evaNo)
+        [Description("Get all recent changes (delays, cancellations, platform changes) for a specific station. Recent changes are always a subset of the full changes. They may equal full changes but are typically much smaller. Data includes only those changes that became known within the last 2 minutes.")]
+        public async Task<string> GetRecentStationChanges([Description("EVA station number (e.g., 8000105 for Frankfurt Hauptbahnhof)")] string evaNo)
         {
             try
             {
@@ -96,8 +96,8 @@ public static class Tools
         }
 
         [McpServerTool]
-        [Description("Get information about stations.")]
-        public async Task<string> GetStationDetails([Description("Either a station name (prefix), eva number, ds100/rl100 code, wildcard (*); doesn't seem to work with umlauten in station name (prefix). If unsure use the Station Name e.g. \"Dresden Hbf\" ")] string pattern)
+        [Description("Get information about stations. Returns Name, EVA number and ds100 code for the provided pattern. Can be used to find the EVA station number for a given full text station.")]
+        public async Task<string> GetStationInformation([Description("Either a station name (prefix), eva number, ds100/rl100 code, wildcard (*); doesn't seem to work with umlauten in station name (prefix). If unsure use the Station Name e.g. \"Dresden Hbf\" ")] string pattern)
         {
             try
             {

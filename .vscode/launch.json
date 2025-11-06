@@ -2,7 +2,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug MCP Server with Inspector (HTTP)",
+            "name": "Debug C# MCP Server",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-solution",
+            "program": "${workspaceFolder}/AbeckDev.DbTimetable.Mcp/bin/Debug/net9.0/AbeckDev.DbTimetable.Mcp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/AbeckDev.DbTimetable.Mcp",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://0.0.0.0:3001"
+            },
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            }
+        },
+        {
+            "name": "Run MCP Inspector",
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npx",
@@ -18,11 +37,25 @@
             },
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "preLaunchTask": "build-and-run-server",
             "serverReadyAction": {
                 "pattern": "MCP Inspector is up and running at:\\s+(http://[^\\s]+)",
                 "uriFormat": "%s",
                 "action": "openExternally"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug MCP Server with Inspector",
+            "configurations": [
+                "Debug C# MCP Server",
+                "Run MCP Inspector"
+            ],
+            "stopAll": true,
+            "presentation": {
+                "hidden": false,
+                "group": "MCP",
+                "order": 1
             }
         }
     ]

@@ -24,7 +24,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetFullTimetableChanges(eventNo);
+        var result = await tools.GetFullStationChanges(eventNo);
 
         // Assert
         Assert.Equal(_testXmlResponse, result);
@@ -43,7 +43,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetFullTimetableChanges(eventNo);
+        var result = await tools.GetFullStationChanges(eventNo);
 
         // Assert
         Assert.Contains("Error fetching timetable changes:", result);
@@ -62,7 +62,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetFullTimetableChanges(eventNo);
+        var result = await tools.GetFullStationChanges(eventNo);
 
         // Assert
         Assert.Contains("Unexpected error:", result);
@@ -182,7 +182,7 @@ public class TimetableToolsTests
     }
 
     [Fact]
-    public async Task GetStationChanges_WithValidEvaNo_ReturnsXmlContent()
+    public async Task GetRecentChanges_WithValidEvaNo_ReturnsXmlContent()
     {
         // Arrange
         var evaNo = "8000105";
@@ -192,7 +192,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationChanges(evaNo);
+        var result = await tools.GetRecentStationChanges(evaNo);
 
         // Assert
         Assert.Equal(_testXmlResponse, result);
@@ -200,7 +200,7 @@ public class TimetableToolsTests
     }
 
     [Fact]
-    public async Task GetStationChanges_WithHttpRequestException_ReturnsErrorMessage()
+    public async Task GetRecentChanges_WithHttpRequestException_ReturnsErrorMessage()
     {
         // Arrange
         var evaNo = "8000105";
@@ -211,7 +211,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationChanges(evaNo);
+        var result = await tools.GetRecentStationChanges(evaNo);
 
         // Assert
         Assert.Contains("Error fetching station changes:", result);
@@ -219,7 +219,7 @@ public class TimetableToolsTests
     }
 
     [Fact]
-    public async Task GetStationChanges_WithGeneralException_ReturnsUnexpectedErrorMessage()
+    public async Task GetRecentChanges_WithGeneralException_ReturnsUnexpectedErrorMessage()
     {
         // Arrange
         var evaNo = "8000105";
@@ -230,7 +230,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationChanges(evaNo);
+        var result = await tools.GetRecentStationChanges(evaNo);
 
         // Assert
         Assert.Contains("Unexpected error:", result);
@@ -248,7 +248,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationDetails(pattern);
+        var result = await tools.GetStationInformation(pattern);
 
         // Assert
         Assert.Equal(_testXmlResponse, result);
@@ -267,7 +267,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationDetails(pattern);
+        var result = await tools.GetStationInformation(pattern);
 
         // Assert
         Assert.Contains("Error fetching station details:", result);
@@ -286,7 +286,7 @@ public class TimetableToolsTests
         var tools = new Tools.TimetableTools(_mockService.Object);
 
         // Act
-        var result = await tools.GetStationDetails(pattern);
+        var result = await tools.GetStationInformation(pattern);
 
         // Assert
         Assert.Contains("Unexpected error:", result);
