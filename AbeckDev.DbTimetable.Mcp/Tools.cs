@@ -46,7 +46,7 @@ public static class Tools
         [Description("Get station board (departures and arrivals) for a specific station in hourly slices. Returns XML data with train schedules.")]
         public async Task<string> GetStationBoard(
             [Description("EVA station number (e.g., 8000105 for Frankfurt Hauptbahnhof)")] string evaNo,
-            [Description("Date and time in format 'yyyy-MM-dd HH:mm' (UTC). Leave empty for current time.")] string? dateTime = null)
+            [Description("Date and time in format 'yyyy-MM-dd HH:mm' (German Time). Leave empty for current time.")] string? dateTime = null)
         {
             try
             {
@@ -119,7 +119,7 @@ public static class Tools
         public async Task<string> FindTrainConnections(
             [Description("Starting station name or EVA number (e.g., 'Frankfurt Hbf' or '8000105')")] string stationA,
             [Description("Destination station name or EVA number (e.g., 'Berlin Hbf' or '8011160')")] string stationB,
-            [Description("Date and time in format 'yyyy-MM-dd HH:mm' (UTC). Leave empty for current time.")] string? dateTime = null)
+            [Description("Date and time in format 'yyyy-MM-dd HH:mm' (German Time). Leave empty for current time.")] string? dateTime = null)
         {
             try
             {
