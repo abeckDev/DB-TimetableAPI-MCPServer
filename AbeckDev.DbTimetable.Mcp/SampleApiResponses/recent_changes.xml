@@ -1,0 +1,40 @@
+<timetable station="Dresden Hbf" eva="8010085">
+
+<s id="-8468449481551429497-2511060900-18" eva="8010085">
+    <ar ct="2511061037" l="50"/>
+</s>
+
+
+<s id="-1981361635087318141-2511060511-21" eva="8010085">
+    <m id="r2520788" t="h" from="2511060845" to="2511061132" cat="Information" ts="2511060839" ts-tts="25-11-06 10:18:43.727" pr="2"/>
+    <m id="r2520445" t="h" from="2511051400" to="2511061500" cat="Störung" ts="2511051551" ts-tts="25-11-06 10:18:43.707" pr="1"/>
+    <m id="r2517364" t="h" from="2511021845" to="2511112359" cat="Störung" ts="2511021917" ts-tts="25-11-06 10:18:43.628" pr="1"/>
+    <ar cpth="Köln Hbf|Solingen Hbf|Wuppertal Hbf|Hagen Hbf|Dortmund Hbf|Hamm(Westf)Hbf|Gütersloh Hbf|Bielefeld Hbf|Herford|Bad Oeynhausen|Minden(Westf)|Hannover Hbf|Wolfsburg Hbf|Magdeburg Hbf|Köthen|Halle(Saale)Hbf|Leipzig/Halle Flughafen|Leipzig Hbf|Riesa|Dresden-Neustadt" ct="2511061254">
+        <m id="r33104601" t="d" c="38" ts="2511051754" ts-tts="25-11-06 10:21:11.422"/>
+        <m id="r33104603" t="d" c="38" ts="2511051754" ts-tts="25-11-06 10:21:11.422"/>
+        <m id="r33104605" t="d" c="38" ts="2511051754" ts-tts="25-11-06 10:21:11.422"/>
+        <m id="r33183625" t="f" c="0" ts="2511060848" ts-tts="25-11-06 10:21:11.422"/>
+        <m id="r33183627" t="f" c="0" ts="2511060848" ts-tts="25-11-06 10:21:11.422"/>
+    </ar>
+</s>
+
+
+<s id="9121076805564930352-2511061034-1" eva="8010085">
+    <dp ct="2511061035" l="3"/>
+</s>
+
+
+<s id="6037739957139721443-2511060627-12" eva="8010085">
+    <ar ct="2511061152">
+        <m id="r33161984" t="d" c="47" ts="2511060634" ts-tts="25-11-06 10:21:11.613"/>
+        <m id="r33198440" t="d" c="63" ts="2511061016" ts-tts="25-11-06 10:21:11.613"/>
+        <m id="r33198442" t="d" c="63" ts="2511061016" ts-tts="25-11-06 10:21:11.613"/>
+        <m id="r33199919" t="f" c="0" ts="2511061025" ts-tts="25-11-06 10:26:07.408"/>
+        <m id="r33199920" t="f" c="0" ts="2511061025" ts-tts="25-11-06 10:26:07.408"/>
+    </ar>
+</s>
+
+
+<m id="i1081850" t="i" from="2507241428" to="2612312028" ts="2511052046" ts-tts="25-11-06 10:21:22.135"/>
+
+</timetable>

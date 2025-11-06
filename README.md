@@ -438,16 +438,16 @@ Once the server is running, you can test it using the MCP Inspector:
 
 1. **List Available Tools**:
    - In the MCP Inspector, click "List Tools" to see all available MCP tools
-   - You should see: `GetStationBoard`, `GetStationChanges`, `GetFullTimetableChanges`, `GetStationDetails`, `FindTrainConnections`
+   - You should see: `get_station_board`, `get_recent_station_changes`, `get_full_station_changes`, `get_station_information`, `find_train_connections`
 
-2. **Test GetStationDetails**:
-   - Select the `GetStationDetails` tool
+2. **Test get_station_information**:
+   - Select the `get_station_information` tool
    - Enter a station name like "Frankfurt" or "Berlin"
    - Click "Call Tool" to execute
    - View the XML response with station information
 
-3. **Test GetStationBoard**:
-   - Select the `GetStationBoard` tool
+3. **Test get_station_board**:
+   - Select the `get_station_board` tool
    - Enter an EVA station number (e.g., `8000105` for Frankfurt Hauptbahnhof)
    - Optionally provide a date/time in format `yyyy-MM-dd HH:mm`
    - Click "Call Tool" to see arrivals and departures
@@ -459,11 +459,11 @@ To integrate this MCP server with AI agents or client applications:
 1. **Connect to the MCP endpoint**: `http://localhost:3001/mcp`
 2. **Use HTTP transport** as configured in this implementation
 3. **Available Tools**:
-   - `GetStationBoard`: Retrieve departures and arrivals for a station
-   - `GetStationChanges`: Get recent changes (delays, cancellations)
-   - `GetFullTimetableChanges`: Get all timetable changes for an event
-   - `GetStationDetails`: Search for station information
-   - `FindTrainConnections`: Find and assess train connections between two stations with delay information
+   - `get_station_board`: Retrieve departures and arrivals for a station.
+   - `get_recent_station_changes`: Get recent changes (delays, cancellations).
+   - `get_full_station_changes`: Get all timetable changes for a station.
+   - `get_station_information`: Search for station information.
+   - `find_train_connections`: Find and assess train connections between two stations with delay information.
 
 For production deployments, consider:
 - Using HTTPS with proper SSL certificates
@@ -608,7 +608,7 @@ The server exposes the following MCP tools for AI agents to interact with Deutsc
 }
 ```
 
-### 2. GetStationChanges
+### 2. GetRecentStationChanges
 
 **Description**: Get all current changes (delays, cancellations, platform changes) for a specific station. Data includes only those changes that became known within the last 2 minutes.
 
@@ -628,9 +628,9 @@ The server exposes the following MCP tools for AI agents to interact with Deutsc
 }
 ```
 
-### 3. GetFullTimetableChanges
+### 3. GetFullStationChanges
 
-**Description**: Get full timetable changes for a specific train event. The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.
+**Description**: Get full timetable changes for a specific train station. The data includes all known changes from now on until indefinitely into the future. Once changes become obsolete (because their trip departs from the station) they are removed.
 
 **Parameters**:
 - `eventNo` (required): Event number (EVA number) of the train event
@@ -644,7 +644,7 @@ The server exposes the following MCP tools for AI agents to interact with Deutsc
 }
 ```
 
-### 4. GetStationDetails
+### 4. GetStationInformation
 
 **Description**: Get information about stations.
 
@@ -746,7 +746,7 @@ Here are some commonly used EVA station numbers for testing:
 | Köln Hauptbahnhof | 8000207 |
 | Dresden Hauptbahnhof | 8010085 |
 
-You can find more EVA numbers using the `GetStationDetails` tool with a station name pattern.
+You can find more EVA numbers using the `GetStationInformation` tool with a station name pattern.
 
 ---
 
